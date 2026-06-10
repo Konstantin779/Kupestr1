@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 .header-panel {
     display: flex;
     align-items: center;
@@ -11,16 +15,11 @@
     border-bottom: 1px solid #e8e8e8;
 }
 
-.header-location {
-    border: none;
-    outline: none;
+.header-location-text {
     font-weight: 400;
     font-size: 14px;
     color: #999999;
-}
-
-.header-option {
-    border: none;
+    margin-left: 5px;
 }
 
 .header_container {
@@ -78,6 +77,9 @@
     display: flex;
     align-items: center;
     background: #2d2d2d;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .navigation-list {
@@ -179,7 +181,7 @@
 }
 
 .section-service {
-    margin-bottom: 60px;
+    margin-bottom: 100px;
 }
 
 .service-title {
@@ -192,12 +194,12 @@
 
 .service-items {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .service-item {
     width: 370px;
-    height: 500px;
     display: flex;
     flex-direction: column;
     padding: 2%;
@@ -205,7 +207,6 @@
 
 .service-item:hover {
     box-shadow: 2px 2px 10px #707070;
-    border-radius: 2%;
     transition: all .5s;
 }
 
@@ -213,6 +214,7 @@
     width: 100%;
     height: 300px;
     overflow: hidden;
+    background: #e8e8e8;
 }
 
 .item-img img {
@@ -220,6 +222,12 @@
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.placeholder-img {
+    width: 100%;
+    height: 100%;
+    background: #e8e8e8;
 }
 
 .title-small {
@@ -241,11 +249,14 @@
     text-align: center;
 }
 
-/* ========== НОВЫЕ БЛОКИ ========== */
+.logo-img {
+    max-width: 100px;
+    height: auto;
+}
 
 /* Оплата и сроки */
 .section-payment {
-    margin-bottom: 60px;
+    margin-bottom: 100px;
 }
 .payment-grid {
     display: flex;
@@ -269,18 +280,27 @@
     color: #666;
 }
 
-/* Наши работы */
+/* Наши работы - карусель слайдер */
 .section-works {
-    margin-bottom: 60px;
+    margin-bottom: 100px;
+    position: relative;
 }
-.works-grid {
+.works-slider-container {
+    position: relative;
+    overflow: hidden;
+}
+.works-slider {
+    overflow: hidden;
+    margin: 0 40px;
+}
+.works-track {
     display: flex;
-    flex-wrap: wrap;
+    transition: transform 0.5s ease;
     gap: 20px;
-    justify-content: center;
 }
 .work-item {
-    width: 270px;
+    flex: 0 0 calc(25% - 15px);
+    min-width: 250px;
     text-align: center;
 }
 .work-img {
@@ -290,7 +310,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 8px;
 }
 .work-item h4 {
     margin: 10px 0 5px;
@@ -300,8 +319,49 @@
     font-size: 13px;
     color: #999;
 }
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #34b52f;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 20px;
+    z-index: 10;
+    border-radius: 50%;
+}
+.slider-btn:hover {
+    background: #2a9126;
+}
+.prev-btn {
+    left: 0;
+}
+.next-btn {
+    right: 0;
+}
+.slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+.dot {
+    width: 10px;
+    height: 10px;
+    background: #ccc;
+    cursor: pointer;
+}
+.dot.active {
+    background: #34b52f;
+}
 
-/* Intro преимущества */
+/* Intro преимущества с иконками */
+.section-intro {
+    margin-bottom: 100px;
+}
 .intro-grid {
     display: flex;
     flex-wrap: wrap;
@@ -325,6 +385,13 @@
     background: #34b52f;
     border-radius: 50%;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.title-figure svg {
+    width: 28px;
+    height: 28px;
 }
 .title-text {
     font-weight: 600;
@@ -340,7 +407,7 @@
 .section-about {
     padding: 40px 0;
     background: #f9f9f9;
-    margin-bottom: 60px;
+    margin-bottom: 100px;
 }
 .about-content {
     display: flex;
@@ -363,7 +430,6 @@
     background: #34b52f;
     color: #fff;
     text-decoration: none;
-    border-radius: 4px;
 }
 .about-link:hover {
     background: #2a9126;
@@ -392,7 +458,7 @@
 
 /* Отзывы анимированные */
 .section-reviews {
-    margin-bottom: 60px;
+    margin-bottom: 100px;
     overflow: hidden;
 }
 .reviews-slider {
@@ -411,7 +477,6 @@
     width: 320px;
     background: #fff;
     border: 1px solid #e8e8e8;
-    border-radius: 12px;
     padding: 20px;
     flex-shrink: 0;
 }
@@ -515,18 +580,21 @@
         width: 80%;
         font-size: 40px;
     }
+    .work-item {
+        flex: 0 0 calc(33.333% - 14px);
+    }
+    .service-item {
+        width: calc(33.333% - 14px);
+        min-width: 280px;
+    }
 }
 
 @media (max-width: 992px) {
     .service-items {
-        flex-wrap: wrap;
         justify-content: center;
-        gap: 20px;
     }
     .service-item {
         width: 45%;
-        height: auto;
-        min-height: 450px;
     }
     .title-big {
         font-size: 36px;
@@ -543,6 +611,9 @@
     }
     .intro-item {
         width: calc(50% - 20px);
+    }
+    .work-item {
+        flex: 0 0 calc(50% - 10px);
     }
 }
 
@@ -581,6 +652,7 @@
     }
     .navigation {
         height: auto;
+        position: relative;
     }
     .navigation-list {
         flex-wrap: wrap;
@@ -622,6 +694,18 @@
     .footer-links li {
         margin-bottom: 0;
     }
+    .works-slider {
+        margin: 0 30px;
+    }
+    .work-item {
+        flex: 0 0 calc(100% - 0px);
+        min-width: 260px;
+    }
+    .slider-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -646,5 +730,11 @@
     }
     .review-item {
         width: 280px;
+    }
+    .logo-img {
+        max-width: 80px;
+    }
+    .works-slider {
+        margin: 0 20px;
     }
 }

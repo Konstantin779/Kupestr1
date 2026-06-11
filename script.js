@@ -17,12 +17,11 @@ document.querySelectorAll('.navigation-link, .footer-links a, .hero-link, .about
     });
 });
 
-// Карусель слайдер для раздела "Наши работы" с поддержкой свайпов
+// Карусель слайдер для раздела "Наши работы" с поддержкой свайпов (не ломает скролл)
 const track = document.getElementById('worksTrack');
 const prevBtn = document.getElementById('worksPrev');
 const nextBtn = document.getElementById('worksNext');
 const dotsContainer = document.getElementById('worksDots');
-const sliderContainer = document.querySelector('.works-slider-container');
 
 let currentIndex = 0;
 let itemsPerView = 4;
@@ -31,8 +30,9 @@ let autoSlideInterval;
 
 // Переменные для свайпов
 let touchStartX = 0;
+let touchStartY = 0;
 let touchEndX = 0;
-let isSwiping = false;
+let touchEndY = 0;
 
 function updateItemsPerView() {
     if (window.innerWidth <= 768) {
@@ -104,52 +104,28 @@ function prevSlide() {
     }
 }
 
-// Обработчики свайпов для телефона (вешаем на весь контейнер)
+// Обработчики свайпов для телефона (не мешают вертикальному скроллу)
 function handleTouchStart(event) {
     touchStartX = event.touches[0].clientX;
-    isSwiping = true;
-}
-
-function handleTouchMove(event) {
-    if (!isSwiping) return;
-    touchEndX = event.touches[0].clientX;
-    const deltaX = touchEndX - touchStartX;
-    
-    // Легкое сопротивление при свайпе - показываем что происходит движение
-    const items = getWorkItems();
-    const slideWidth = items[0]?.offsetWidth + 20 || 270;
-    const offset = currentIndex * itemsPerView * slideWidth;
-    const dragOffset = offset + deltaX * 0.5; // 0.5 - сопротивление для плавности
-    
-    track.style.transform = `translateX(-${dragOffset}px)`;
-    track.style.transition = 'none';
+    touchStartY = event.touches[0].clientY;
 }
 
 function handleTouchEnd(event) {
-    if (!isSwiping) return;
-    isSwiping = false;
+    touchEndX = event.changedTouches[0].clientX;
+    touchEndY = event.changedTouches[0].clientY;
     
     const deltaX = touchEndX - touchStartX;
-    const threshold = 50; // Минимальное расстояние для свайпа
+    const deltaY = touchEndY - touchStartY;
     
-    if (Math.abs(deltaX) > threshold) {
+    // Свайп срабатывает только если движение по горизонтали больше, чем по вертикали
+    // и горизонтальное расстояние больше 30px
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
         if (deltaX > 0) {
             prevSlide();
         } else {
             nextSlide();
         }
-    } else {
-        // Возвращаем на место если свайп был слишком короткий
-        const items = getWorkItems();
-        const slideWidth = items[0]?.offsetWidth + 20 || 270;
-        const offset = currentIndex * itemsPerView * slideWidth;
-        track.style.transform = `translateX(-${offset}px)`;
-        track.style.transition = 'transform 0.3s ease';
     }
-    
-    // Сброс
-    touchStartX = 0;
-    touchEndX = 0;
 }
 
 function initSlider() {
@@ -158,6 +134,7 @@ function initSlider() {
     goToSlide(0);
     
     if (prevBtn && nextBtn) {
+        // Удаляем старые обработчики и добавляем новые
         const newPrevBtn = prevBtn.cloneNode(true);
         const newNextBtn = nextBtn.cloneNode(true);
         prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
@@ -176,15 +153,13 @@ function initSlider() {
         });
     }
     
-    // Добавляем обработчики свайпов на контейнер слайдера
-    const sliderContainerElem = document.querySelector('.works-slider');
-    if (sliderContainerElem) {
-        sliderContainerElem.removeEventListener('touchstart', handleTouchStart);
-        sliderContainerElem.removeEventListener('touchmove', handleTouchMove);
-        sliderContainerElem.removeEventListener('touchend', handleTouchEnd);
-        sliderContainerElem.addEventListener('touchstart', handleTouchStart);
-        sliderContainerElem.addEventListener('touchmove', handleTouchMove);
-        sliderContainerElem.addEventListener('touchend', handleTouchEnd);
+    // Добавляем обработчики свайпов на весь контейнер слайдера
+    const sliderContainer = document.querySelector('.works-slider');
+    if (sliderContainer) {
+        sliderContainer.removeEventListener('touchstart', handleTouchStart);
+        sliderContainer.removeEventListener('touchend', handleTouchEnd);
+        sliderContainer.addEventListener('touchstart', handleTouchStart);
+        sliderContainer.addEventListener('touchend', handleTouchEnd);
     }
 }
 
@@ -202,7 +177,7 @@ function startAutoSlide() {
         if (window.innerWidth <= 768) {
             nextSlide();
         }
-    }, 5000);
+    }, 4000);
 }
 
 function stopAutoSlide() {

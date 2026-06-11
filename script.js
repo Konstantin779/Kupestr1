@@ -32,8 +32,7 @@ let autoSlideInterval;
 // Переменные для свайпов
 let touchStartX = 0;
 let touchEndX = 0;
-let touchStartY = 0;
-let touchEndY = 0;
+let isSwiping = false;
 
 function updateItemsPerView() {
     if (window.innerWidth <= 768) {
@@ -76,6 +75,7 @@ function goToSlide(index) {
     const slideWidth = items[0]?.offsetWidth + 20 || 270;
     const offset = currentIndex * itemsPerView * slideWidth;
     track.style.transform = `translateX(-${offset}px)`;
+    track.style.transition = 'transform 0.3s ease';
     
     document.querySelectorAll('.dot').forEach((dot, i) => {
         dot.classList.toggle('active', i === currentIndex);
@@ -104,38 +104,52 @@ function prevSlide() {
     }
 }
 
-// Обработчики свайпов для телефона
+// Обработчики свайпов для телефона (вешаем на весь контейнер)
 function handleTouchStart(event) {
     touchStartX = event.touches[0].clientX;
-    touchStartY = event.touches[0].clientY;
+    isSwiping = true;
 }
 
 function handleTouchMove(event) {
+    if (!isSwiping) return;
     touchEndX = event.touches[0].clientX;
-    touchEndY = event.touches[0].clientY;
+    const deltaX = touchEndX - touchStartX;
+    
+    // Легкое сопротивление при свайпе - показываем что происходит движение
+    const items = getWorkItems();
+    const slideWidth = items[0]?.offsetWidth + 20 || 270;
+    const offset = currentIndex * itemsPerView * slideWidth;
+    const dragOffset = offset + deltaX * 0.5; // 0.5 - сопротивление для плавности
+    
+    track.style.transform = `translateX(-${dragOffset}px)`;
+    track.style.transition = 'none';
 }
 
-function handleTouchEnd() {
-    // Проверяем горизонтальный свайп (игнорируем вертикальную прокрутку)
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
+function handleTouchEnd(event) {
+    if (!isSwiping) return;
+    isSwiping = false;
     
-    // Если горизонтальное движение больше вертикального (свайп влево/вправо)
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
+    const deltaX = touchEndX - touchStartX;
+    const threshold = 50; // Минимальное расстояние для свайпа
+    
+    if (Math.abs(deltaX) > threshold) {
         if (deltaX > 0) {
-            // Свайп вправо - предыдущий слайд
             prevSlide();
         } else {
-            // Свайп влево - следующий слайд
             nextSlide();
         }
+    } else {
+        // Возвращаем на место если свайп был слишком короткий
+        const items = getWorkItems();
+        const slideWidth = items[0]?.offsetWidth + 20 || 270;
+        const offset = currentIndex * itemsPerView * slideWidth;
+        track.style.transform = `translateX(-${offset}px)`;
+        track.style.transition = 'transform 0.3s ease';
     }
     
     // Сброс
     touchStartX = 0;
     touchEndX = 0;
-    touchStartY = 0;
-    touchEndY = 0;
 }
 
 function initSlider() {
@@ -144,20 +158,33 @@ function initSlider() {
     goToSlide(0);
     
     if (prevBtn && nextBtn) {
-        prevBtn.removeEventListener('click', prevSlide);
-        nextBtn.removeEventListener('click', nextSlide);
-        prevBtn.addEventListener('click', prevSlide);
-        nextBtn.addEventListener('click', nextSlide);
+        const newPrevBtn = prevBtn.cloneNode(true);
+        const newNextBtn = nextBtn.cloneNode(true);
+        prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+        
+        window.prevBtn = newPrevBtn;
+        window.nextBtn = newNextBtn;
+        
+        newPrevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            prevSlide();
+        });
+        newNextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            nextSlide();
+        });
     }
     
-    // Добавляем обработчики свайпов для слайдера
-    if (track) {
-        track.removeEventListener('touchstart', handleTouchStart);
-        track.removeEventListener('touchmove', handleTouchMove);
-        track.removeEventListener('touchend', handleTouchEnd);
-        track.addEventListener('touchstart', handleTouchStart);
-        track.addEventListener('touchmove', handleTouchMove);
-        track.addEventListener('touchend', handleTouchEnd);
+    // Добавляем обработчики свайпов на контейнер слайдера
+    const sliderContainerElem = document.querySelector('.works-slider');
+    if (sliderContainerElem) {
+        sliderContainerElem.removeEventListener('touchstart', handleTouchStart);
+        sliderContainerElem.removeEventListener('touchmove', handleTouchMove);
+        sliderContainerElem.removeEventListener('touchend', handleTouchEnd);
+        sliderContainerElem.addEventListener('touchstart', handleTouchStart);
+        sliderContainerElem.addEventListener('touchmove', handleTouchMove);
+        sliderContainerElem.addEventListener('touchend', handleTouchEnd);
     }
 }
 
@@ -175,7 +202,7 @@ function startAutoSlide() {
         if (window.innerWidth <= 768) {
             nextSlide();
         }
-    }, 4000);
+    }, 5000);
 }
 
 function stopAutoSlide() {

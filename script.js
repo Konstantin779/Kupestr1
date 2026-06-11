@@ -17,16 +17,23 @@ document.querySelectorAll('.navigation-link, .footer-links a, .hero-link, .about
     });
 });
 
-// Карусель слайдер для раздела "Наши работы"
+// Карусель слайдер для раздела "Наши работы" с поддержкой свайпов
 const track = document.getElementById('worksTrack');
 const prevBtn = document.getElementById('worksPrev');
 const nextBtn = document.getElementById('worksNext');
 const dotsContainer = document.getElementById('worksDots');
+const sliderContainer = document.querySelector('.works-slider-container');
 
 let currentIndex = 0;
 let itemsPerView = 4;
 let totalItems = 0;
 let autoSlideInterval;
+
+// Переменные для свайпов
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
 
 function updateItemsPerView() {
     if (window.innerWidth <= 768) {
@@ -97,6 +104,40 @@ function prevSlide() {
     }
 }
 
+// Обработчики свайпов для телефона
+function handleTouchStart(event) {
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+}
+
+function handleTouchMove(event) {
+    touchEndX = event.touches[0].clientX;
+    touchEndY = event.touches[0].clientY;
+}
+
+function handleTouchEnd() {
+    // Проверяем горизонтальный свайп (игнорируем вертикальную прокрутку)
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    
+    // Если горизонтальное движение больше вертикального (свайп влево/вправо)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
+        if (deltaX > 0) {
+            // Свайп вправо - предыдущий слайд
+            prevSlide();
+        } else {
+            // Свайп влево - следующий слайд
+            nextSlide();
+        }
+    }
+    
+    // Сброс
+    touchStartX = 0;
+    touchEndX = 0;
+    touchStartY = 0;
+    touchEndY = 0;
+}
+
 function initSlider() {
     updateItemsPerView();
     updateDots();
@@ -107,6 +148,16 @@ function initSlider() {
         nextBtn.removeEventListener('click', nextSlide);
         prevBtn.addEventListener('click', prevSlide);
         nextBtn.addEventListener('click', nextSlide);
+    }
+    
+    // Добавляем обработчики свайпов для слайдера
+    if (track) {
+        track.removeEventListener('touchstart', handleTouchStart);
+        track.removeEventListener('touchmove', handleTouchMove);
+        track.removeEventListener('touchend', handleTouchEnd);
+        track.addEventListener('touchstart', handleTouchStart);
+        track.addEventListener('touchmove', handleTouchMove);
+        track.addEventListener('touchend', handleTouchEnd);
     }
 }
 

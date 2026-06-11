@@ -17,7 +17,82 @@ document.querySelectorAll('.navigation-link, .footer-links a, .hero-link, .about
     });
 });
 
-// Карусель слайдер для раздела "Наши работы"
+// === МОДАЛЬНОЕ ОКНО ===
+const modalOverlay = document.getElementById('modalOverlay');
+const callRequestBtn = document.getElementById('callRequestBtn');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+const callRequestForm = document.getElementById('callRequestForm');
+const userPhone = document.getElementById('userPhone');
+const formStatus = document.getElementById('formStatus');
+
+// Открыть модалку
+if (callRequestBtn) {
+    callRequestBtn.addEventListener('click', () => {
+        modalOverlay.style.display = 'flex';
+        userPhone.value = '';
+        formStatus.textContent = '';
+        formStatus.className = 'form-status';
+    });
+}
+
+// Закрыть модалку
+function closeModal() {
+    modalOverlay.style.display = 'none';
+}
+if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', closeModal);
+}
+if (modalOverlay) {
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+}
+
+// Отправка формы на почту
+if (callRequestForm) {
+    callRequestForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const phone = userPhone.value.trim();
+        if (!phone) {
+            formStatus.textContent = 'Введите номер телефона';
+            formStatus.className = 'form-status error';
+            return;
+        }
+        
+        formStatus.textContent = 'Отправка...';
+        formStatus.className = 'form-status';
+        
+        try {
+            const formData = new FormData();
+            formData.append('email', 'pozhalov.mikhail@mail.ru');
+            formData.append('phone', phone);
+            formData.append('_subject', 'Новая заявка на звонок с сайта kupe102.ru');
+            formData.append('_captcha', 'false');
+            
+            const response = await fetch('https://formsubmit.co/ajax/pozhalov.mikhail@mail.ru', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                formStatus.textContent = 'Спасибо! Мы перезвоним вам в ближайшее время.';
+                formStatus.className = 'form-status';
+                userPhone.value = '';
+                setTimeout(() => {
+                    closeModal();
+                }, 2000);
+            } else {
+                throw new Error('Ошибка отправки');
+            }
+        } catch (error) {
+            formStatus.textContent = 'Ошибка отправки. Попробуйте позже или позвоните по номеру.';
+            formStatus.className = 'form-status error';
+        }
+    });
+}
+
+// === КАРУСЕЛЬ СЛАЙДЕР ===
 const track = document.getElementById('worksTrack');
 const prevBtn = document.getElementById('worksPrev');
 const nextBtn = document.getElementById('worksNext');
@@ -26,9 +101,8 @@ const dotsContainer = document.getElementById('worksDots');
 let currentIndex = 0;
 let itemsPerView = 4;
 let totalItems = 0;
-let isTransitioning = false; // Блокировка во время анимации
+let isTransitioning = false;
 
-// Переменные для свайпов
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -86,12 +160,10 @@ function goToSlide(index) {
     track.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     track.style.transform = `translateX(-${offset}px)`;
     
-    // Обновляем точки
     document.querySelectorAll('.dot').forEach((dot, i) => {
         dot.classList.toggle('active', i === currentIndex);
     });
     
-    // Разблокируем после анимации
     setTimeout(() => {
         isTransitioning = false;
     }, 450);
@@ -99,11 +171,9 @@ function goToSlide(index) {
 
 function nextSlide() {
     if (isTransitioning) return;
-    
     const items = getWorkItems();
     totalItems = items.length;
     const maxIndex = Math.ceil(totalItems / itemsPerView) - 1;
-    
     if (currentIndex < maxIndex) {
         goToSlide(currentIndex + 1);
     } else {
@@ -113,11 +183,9 @@ function nextSlide() {
 
 function prevSlide() {
     if (isTransitioning) return;
-    
     const items = getWorkItems();
     totalItems = items.length;
     const maxIndex = Math.ceil(totalItems / itemsPerView) - 1;
-    
     if (currentIndex > 0) {
         goToSlide(currentIndex - 1);
     } else {
@@ -125,7 +193,6 @@ function prevSlide() {
     }
 }
 
-// Обработчики свайпов для телефона
 function handleTouchStart(event) {
     if (isTransitioning) return;
     touchStartX = event.touches[0].clientX;
@@ -134,15 +201,11 @@ function handleTouchStart(event) {
 
 function handleTouchEnd(event) {
     if (isTransitioning) return;
-    
     const touchEndX = event.changedTouches[0].clientX;
     const touchEndY = event.changedTouches[0].clientY;
-    
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
     
-    // Свайп срабатывает только если движение по горизонтали больше, чем по вертикали
-    // и горизонтальное расстояние больше 30px
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
         if (deltaX > 0) {
             prevSlide();
@@ -152,24 +215,22 @@ function handleTouchEnd(event) {
     }
 }
 
-// Инициализация слайдера
 function initSlider() {
     updateItemsPerView();
     updateDots();
     
-    // Устанавливаем начальную позицию без анимации
     const items = getWorkItems();
-    const slideWidth = items[0]?.offsetWidth + 20 || 270;
-    const offset = currentIndex * itemsPerView * slideWidth;
-    track.style.transition = 'none';
-    track.style.transform = `translateX(-${offset}px)`;
+    if (items.length > 0) {
+        const slideWidth = items[0]?.offsetWidth + 20 || 270;
+        const offset = currentIndex * itemsPerView * slideWidth;
+        track.style.transition = 'none';
+        track.style.transform = `translateX(-${offset}px)`;
+        
+        setTimeout(() => {
+            track.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        }, 50);
+    }
     
-    // Принудительно сбрасываем transition после рендера
-    setTimeout(() => {
-        track.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-    }, 50);
-    
-    // Назначаем кнопки
     if (prevBtn && nextBtn) {
         const newPrevBtn = prevBtn.cloneNode(true);
         const newNextBtn = nextBtn.cloneNode(true);
@@ -186,7 +247,6 @@ function initSlider() {
         });
     }
     
-    // Добавляем обработчики свайпов на контейнер
     const sliderContainer = document.querySelector('.works-slider');
     if (sliderContainer) {
         sliderContainer.removeEventListener('touchstart', handleTouchStart);
@@ -196,13 +256,11 @@ function initSlider() {
     }
 }
 
-// При ресайзе пересчитываем
 window.addEventListener('resize', () => {
     currentIndex = 0;
     initSlider();
 });
 
-// При загрузке DOM
 document.addEventListener('DOMContentLoaded', () => {
     initSlider();
 });

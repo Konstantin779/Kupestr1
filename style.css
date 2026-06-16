@@ -38,6 +38,8 @@ html {
     color: #2d2d2d;
     text-decoration: none;
     font-weight: bold;
+    display: flex;
+    align-items: center;
 
 }
 
@@ -52,9 +54,6 @@ html {
     align-items: start;
 }
 
-.contact-svg {
-    margin-top: 7px;
-}
 
 .contact-block {
     display: flex;
@@ -78,6 +77,10 @@ html {
 .container {
     margin: 0 auto;
     width: 1200px;
+}
+
+.decore{
+font-size: 30px;
 }
 
 .navigation {
@@ -203,7 +206,6 @@ html {
 
 .service-items {
     display: flex;
-    justify-content: space-between;
     flex-wrap: wrap;
     gap: 20px;
 }
@@ -331,7 +333,7 @@ html {
 }
 .slider-btn {
     position: absolute;
-    top: 50%;
+    top: 40%;
     transform: translateY(-50%);
     background: #34b52f;
     color: white;
@@ -341,6 +343,7 @@ html {
     cursor: pointer;
     font-size: 20px;
     z-index: 10;
+    border-radius: 50%;
 }
 .slider-btn:hover {
     background: #2a9126;
@@ -356,12 +359,14 @@ html {
     justify-content: center;
     gap: 10px;
     margin-top: 20px;
+
 }
 .dot {
     width: 10px;
     height: 10px;
     background: #ccc;
     cursor: pointer;
+    border-radius: 50%;
 }
 .dot.active {
     background: #34b52f;
@@ -722,7 +727,7 @@ html {
         flex-direction: row;
     }
     .contact-link{
-        width: 130px;
+        width: 131px;
         height: 31px;
         text-align: center;
     }
